@@ -1,0 +1,117 @@
+#!/bin/bash
+
+# atom is free software; you can redistribute it and/or modify it under #
+# the terms of the GNU General Public License as published by the Free  #
+# Software Foundation; either version 3, or (at your option) any later  #
+# version.                                                              #
+#                                                                       #
+# You should have received a copy of the GNU General Public License     #
+# along with GCC; see the file COPYING3.  If not see                    #
+# <http://www.gnu.org/licenses/>.                                       #
+
+BITS="32"
+ASM_CODE=""
+QUIET=0
+NEED_HELP=0
+NEED_VERSION=0
+
+function print_copylefts()
+{
+    echo "ASSEMBLY_TO_MACHINE_CODE version 0.0.1"
+    echo ""
+    echo "Copyright (C) 2014 $(dc -e 40995247380181659848396800020618450791690P)."
+    echo "This is free software; see the source for copying conditions.  There is NO"
+    echo "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    echo ""
+}
+
+function print_help()
+{
+    if [ $QUIET -eq 0 ]
+    then
+        print_copylefts
+    fi
+
+    echo "Usage: `basename $0` [options]"
+    echo "  -a asm code"
+    echo "      Specifies asm code string or file."
+    echo "  -b bits"
+    echo "      Specifies 32-bit or 64-bit mode. The default is 32-bit mode."
+    echo "  -h"
+    echo "      Print a summary of the options and exit."
+    echo "  -q"
+    echo "      Do not print version and copylefts on startup."
+    echo "  -v"
+    echo "      Display the version number and copylefts."
+    exit
+}
+
+function asm_to_mach()
+{
+    srcfile=$1
+    objfile=$(mktemp)
+    as --${BITS} -o $objfile $srcfile
+    objdump -d $objfile | awk -F':' '/:/ && NR>=8{print $2}'
+    if [ -f "$objfile" ]
+    then
+        rm $objfile
+    fi
+}
+
+if [ $# -lt 1 ]
+then                                                                        print_help
+fi                                                                                
+
+while getopts ":a:b:hqv" Option
+do                                                                                
+    case $Option in                                                                   
+        a) 
+            ASM_CODE="$OPTARG";;
+        b) 
+            BITS="$OPTARG";;
+        h) 
+            NEED_HELP=1;;
+        q)
+            QUIET=1;;
+        v)
+            NEED_VERSION=1;;
+        *)
+            echo "You just entered an unsuported option.";;
+    esac                                                                              
+done                                                                              
+
+if [ $NEED_VERSION -eq 1 ]
+then
+    print_copylefts
+    exit
+fi
+
+if [ $NEED_HELP -eq 1 ]
+then
+    print_help
+fi
+
+case $BITS in
+    "32"|"64")
+        ;;
+    *)
+        print_help
+        echo "Bits only support 32,64 bits"
+        exit;;
+esac
+
+TMPFILE=$(mktemp)
+echo "    .section .text" > $TMPFILE
+echo "    .global _start" >> $TMPFILE
+echo "_start:" >> $TMPFILE
+
+if [ -f "$ASM_CODE" ] # machine code in file
+then
+    cat $ASM_CODE >> $TMPFILE
+    asm_to_mach $TMPFILE
+else
+    echo ${ASM_CODE} | sed 's/;/\n/g' >> $TMPFILE
+    asm_to_mach $TMPFILE
+fi
+
+rm $TMPFILE
