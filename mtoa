@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# mtoa is free software; you can redistribute it and/or modify it under #
+# the terms of the GNU General Public License as published by the Free  #
+# Software Foundation; either version 3, or (at your option) any later  #
+# version.                                                              #
+#                                                                       #
+# You should have received a copy of the GNU General Public License     #
+# along with GCC; see the file COPYING3.  If not see                    #
+# <http://www.gnu.org/licenses/>.                                       #
+
+ARCH="i386"
+BITS="32"
+STYLE="att"
+MACH_CODE=""
+QUIET=0
+NEED_HELP=0
+NEED_VERSION=0
+
+function print_copylefts()
+{
+    echo "MACHINE_CODE_TO_ASSEMBLY version 0.0.1"
+    echo ""
+    echo "Copyright (C) 2014 xyesan@gmail.com."
+    echo "This is free software; see the source for copying conditions.  There is NO"
+    echo "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    echo ""
+}
+
+function print_help()
+{
+    if [ $QUIET -eq 0 ]
+    then
+        print_copylefts
+    fi
+
+    echo "Usage: `basename $0` [options]"
+    echo "  -a architecture"
+    echo "      Specify the architecture to use when disassembling,"
+    echo "      try 'objdump --help' to get supported list.The default is i386."
+    echo "  -b bits"
+    echo "      Specifies 16-, 32- or 64-bit mode. The default is 32-bit mode."
+    echo "  -m machine code"
+    echo "      Specifies machine code string or file."
+    echo "  -s style"
+    echo "      Select between intel mnemonic mode and AT&T mnemonic mode."
+    echo "      The default is AT&T mode."
+    echo "  -h"
+    echo "      Print a summary of the options and exit."
+    echo "  -q"
+    echo "      Do not print version and copylefts on startup."
+    echo "  -v"
+    echo "      Display the version number and copylefts."
+    exit
+}
+
+function mach_to_asm()
+{
+    arch=$1
+    bits=$2
+    style=$3
+    tmpfile=$4
+    objdump --disassemble-all --target=binary --architecture=${arch} -M${bits},${style} ${tmpfile} | awk -F':' '/:/ && NR>=8{print $2}'
+}
+
+if [ $# -lt 1 ]
+then                                                                              
+    print_help
+fi                                                                                
+
+while getopts ":a:b:hm:qs:v" Option
+do                                                                                
+    case $Option in                                                                   
+        a) 
+            ARCH="$OPTARG";;
+        b) 
+            BITS="$OPTARG";;
+        s) 
+            STYLE="$OPTARG";;
+        h) 
+            NEED_HELP=1;;
+        m) 
+            MACH_CODE="$OPTARG";;
+        q)
+            QUIET=1;;
+        v)
+            NEED_VERSION=1;;
+        *)
+            echo "You just entered an unsuported option.";;
+    esac                                                                              
+done                                                                              
+
+if [ $NEED_VERSION -eq 1 ]
+then
+    print_copylefts
+    exit
+fi
+
+if [ $NEED_HELP -eq 1 ]
+then
+    print_help
+fi
+
+case $BITS in
+    "16")
+        BITS="i8086";;
+    "32")
+        BITS="i386";;
+    "64")
+        BITS="x86-64";;
+    *)
+        print_help
+        echo "Bits only support 16,32,64 bits"
+        exit;;
+esac
+
+case $STYLE in
+    "intel" | "att")
+        ;;
+    *)
+        print_help
+        echo "Style only support intel,att"
+        exit;;
+esac
+
+if [ -f "$MACH_CODE" ] # machine code in file
+then
+    mach_to_asm $ARCH $BITS $STYLE $MACH_CODE
+else
+    TMPFILE=$(mktemp)
+    echo -ne ${MACH_CODE} > $TMPFILE
+    mach_to_asm $ARCH $BITS $STYLE $TMPFILE
+    rm $TMPFILE
+fi
