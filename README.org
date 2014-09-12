@@ -4,11 +4,11 @@
 
   * mtoa
 
-    machine code to assembly code snippet,support Intel and AT&T style
+    translate machine code to assembly code snippet(assembly code supports both Intel syntax and AT&T syntax mode)
 
   * atom
 
-    assembly code snippet to machine code,only support AT&T style
+    translate assembly code snippet to machine code(assembly code only support AT&T syntax mode)
 
 * How to use
 
