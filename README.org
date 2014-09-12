@@ -1,3 +1,9 @@
+* License
+
+  GPLv3+
+  
+  See the source for details
+
 * About
 
   This repository contains two utils:
@@ -73,8 +79,6 @@ atom -a test_atom -b 64
 48 c7 c0 01 00 00 00 	mov    $0x1,%rax
 #+END_SRC
 
-* License
+* TODO
 
-  GPLv3+
-  
-  See the source for details
++ support NASM
