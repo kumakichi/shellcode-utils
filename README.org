@@ -1,0 +1,80 @@
+* About
+
+  This repository contains two utils:
+
+  * mtoa
+
+    machine code to assembly code snippet,support Intel and AT&T style
+
+  * atom
+
+    assembly code snippet to machine code,only support AT&T style
+
+* How to use
+
+download the two scripts,put them into your *PATH*,and don't forget add execute permission on them using *chmod +x*
+
+try
+#+BEGIN_SRC bash
+mtoa -h
+#+END_SRC
+or
+#+BEGIN_SRC bash
+atom -h
+#+END_SRC
+to get help infomation
+
+* Examples
+
+** mtoa
+
++ through command line:
+
+#+BEGIN_SRC bash
+mtoa -b 64 -m '\x48\xc7\xc0\x01\x00\x00\x00\xc3'
+=>
+48 c7 c0 01 00 00 00 	mov    $0x1,%rax
+c3                   	retq
+#+END_SRC
+
++ through file:
+
+#+BEGIN_SRC bash
+echo -ne '\xb8\x01\x00\x00\x00' > test_mtoa
+mtoa -m test_mtoa -s intel
+=>
+b8 01 00 00 00       	mov    eax,0x1
+#+END_SRC
+
+** atom
+
++ through command line:
+
+#+BEGIN_SRC bash
+atom -a 'pushl %eax;movl $1,%eax'
+=>
+50                   	push   %eax
+b8 01 00 00 00       	mov    $0x1,%eax
+#+END_SRC
+
++ through file:
+
+#+BEGIN_SRC bash
+cat test_atom 
+=>
+pushq %rax
+movq $1,%rax
+#+END_SRC
+
+#+BEGIN_SRC bash
+atom -a test_atom -b 64
+=>
+50                   	push   %rax
+48 c7 c0 01 00 00 00 	mov    $0x1,%rax
+#+END_SRC
+
+* License
+
+  GPLv3+
+  
+  See the source for details
