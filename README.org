@@ -79,6 +79,6 @@ atom -a test_atom -b 64
 48 c7 c0 01 00 00 00 	mov    $0x1,%rax
 #+END_SRC
 
-* TODO
+* Todo
 
 + support NASM
