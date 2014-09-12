@@ -12,7 +12,7 @@
 
 * How to use
 
-download the two scripts,put them into your *PATH*,and don't forget add execute permission on them using *chmod +x*
+download the two scripts,put them into your *PATH*,and don't forget adding executable permission on them using *chmod +x*
 
 try
 #+BEGIN_SRC bash
